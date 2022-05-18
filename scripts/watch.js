@@ -1,13 +1,14 @@
 import esbuild from 'esbuild'
 
 esbuild.build({
-    entryPoints: ['src/background.js', 'src/scripts/scrapper.js','src/scripts/getUrls.js'],
+    entryPoints: ['src/background.js', 'src/scripts/scrapper.js', 'src/scripts/getUrls.js'],
     outdir: 'build',
     bundle: true,
     watch: true,
+    loader: { '.html': 'text' }
 }).then(result => {
     console.log('watching...')
     console.log(result)
-}).catch(error=>{
+}).catch(error => {
     console.log(error)
-})
+});

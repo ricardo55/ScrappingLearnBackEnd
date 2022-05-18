@@ -1,7 +1,8 @@
 (() => {
   // src/config.js
   var URL = {
-    base: "https://www.linkedin.com/search/results/people/?keywords=fullstack"
+    //base: "https://www.linkedin.com/search/results/people/?keywords=fullstack"
+    base: "https://www.linkedin.com/search/results/people/?keywords="
   };
   var config_default = URL;
 
@@ -12,19 +13,23 @@
   if (typeof Promise !== "undefined" && !_global.Promise) {
     _global.Promise = Promise;
   }
+
   function extend(obj, extension) {
     if (typeof extension !== "object")
       return obj;
-    keys(extension).forEach(function(key) {
+    keys(extension).forEach(function (key) {
       obj[key] = extension[key];
     });
     return obj;
   }
+
   var getProto = Object.getPrototypeOf;
   var _hasOwn = {}.hasOwnProperty;
+
   function hasOwn(obj, prop) {
     return _hasOwn.call(obj, prop);
   }
+
   function props(proto, extension) {
     if (typeof extension === "function")
       extension = extension(getProto(proto));
@@ -32,13 +37,16 @@
       setProp(proto, key, extension[key]);
     });
   }
+
   var defineProperty = Object.defineProperty;
+
   function setProp(obj, prop, functionOrGetSet, options) {
     defineProperty(obj, prop, extend(functionOrGetSet && hasOwn(functionOrGetSet, "get") && typeof functionOrGetSet.get === "function" ? { get: functionOrGetSet.get, set: functionOrGetSet.set, configurable: true } : { value: functionOrGetSet, configurable: true, writable: true }, options));
   }
+
   function derive(Child) {
     return {
-      from: function(Parent) {
+      from: function (Parent) {
         Child.prototype = Object.create(Parent.prototype);
         setProp(Child.prototype, "constructor", Child);
         return {
@@ -149,7 +157,7 @@
     if (typeof keyPath === "string")
       setByKeyPath(obj, keyPath, void 0);
     else if ("length" in keyPath)
-      [].map.call(keyPath, function(kp) {
+      [].map.call(keyPath, function (kp) {
         setByKeyPath(obj, kp, void 0);
       });
   }
@@ -206,10 +214,10 @@
     return toString.call(o).slice(8, -1);
   }
   var iteratorSymbol = typeof Symbol !== "undefined" ? Symbol.iterator : "@@iterator";
-  var getIteratorOf = typeof iteratorSymbol === "symbol" ? function(x) {
+  var getIteratorOf = typeof iteratorSymbol === "symbol" ? function (x) {
     var i;
     return x != null && (i = x[iteratorSymbol]) && i.apply(x);
-  } : function() {
+  } : function () {
     return null;
   };
   var NO_CHAR_ARRAY = {};
@@ -319,11 +327,11 @@
   }
   derive(DexieError).from(Error).extend({
     stack: {
-      get: function() {
+      get: function () {
         return this._stack || (this._stack = this.name + ": " + this.message + prettyStack(this._e, 2));
       }
     },
-    toString: function() {
+    toString: function () {
       return this.name + ": " + this.message;
     }
   });
@@ -380,9 +388,11 @@
       return domError;
     var rv = new exceptionMap[domError.name](message || domError.message, domError);
     if ("stack" in domError) {
-      setProp(rv, "stack", { get: function() {
-        return this.inner.stack;
-      } });
+      setProp(rv, "stack", {
+        get: function () {
+          return this.inner.stack;
+        }
+      });
     }
     return rv;
   }
@@ -402,12 +412,12 @@
   function pureFunctionChain(f1, f2) {
     if (f1 == null || f1 === mirror)
       return f2;
-    return function(val) {
+    return function (val) {
       return f2(f1(val));
     };
   }
   function callBoth(on1, on2) {
-    return function() {
+    return function () {
       on1.apply(this, arguments);
       on2.apply(this, arguments);
     };
@@ -415,7 +425,7 @@
   function hookCreatingChain(f1, f2) {
     if (f1 === nop)
       return f2;
-    return function() {
+    return function () {
       var res = f1.apply(this, arguments);
       if (res !== void 0)
         arguments[0] = res;
@@ -433,7 +443,7 @@
   function hookDeletingChain(f1, f2) {
     if (f1 === nop)
       return f2;
-    return function() {
+    return function () {
       f1.apply(this, arguments);
       var onsuccess = this.onsuccess, onerror = this.onerror;
       this.onsuccess = this.onerror = null;
@@ -447,7 +457,7 @@
   function hookUpdatingChain(f1, f2) {
     if (f1 === nop)
       return f2;
-    return function(modifications) {
+    return function (modifications) {
       var res = f1.apply(this, arguments);
       extend(modifications, res);
       var onsuccess = this.onsuccess, onerror = this.onerror;
@@ -464,7 +474,7 @@
   function reverseStoppableEventChain(f1, f2) {
     if (f1 === nop)
       return f2;
-    return function() {
+    return function () {
       if (f2.apply(this, arguments) === false)
         return false;
       return f1.apply(this, arguments);
@@ -473,13 +483,13 @@
   function promisableChain(f1, f2) {
     if (f1 === nop)
       return f2;
-    return function() {
+    return function () {
       var res = f1.apply(this, arguments);
       if (res && typeof res.then === "function") {
         var thiz = this, i = arguments.length, args = new Array(i);
         while (i--)
           args[i] = arguments[i];
-        return res.then(function() {
+        return res.then(function () {
           return f2.apply(thiz, args);
         });
       }
@@ -517,7 +527,7 @@
   } : () => {
     setTimeout(physicalTick, 0);
   };
-  var asap = function(callback, args) {
+  var asap = function (callback, args) {
     microtickQueue.push([callback, args]);
     if (needsNewPhysicalTick) {
       schedulePhysicalTick();
@@ -538,7 +548,7 @@
     onunhandled: globalError,
     pgp: false,
     env: {},
-    finalize: function() {
+    finalize: function () {
       this.unhandleds.forEach((uh) => {
         try {
           globalError(uh[0], uh[1]);
@@ -578,7 +588,7 @@
     executePromiseTask(this, fn);
   }
   var thenProp = {
-    get: function() {
+    get: function () {
       var psd = PSD, microTaskId = totalEchoes;
       function then(onFulfilled, onRejected) {
         var possibleAwait = !psd.global && (psd !== PSD || microTaskId !== totalEchoes);
@@ -592,9 +602,9 @@
       then.prototype = INTERNAL;
       return then;
     },
-    set: function(value) {
+    set: function (value) {
       setProp(this, "then", value && value.prototype === INTERNAL ? thenProp : {
-        get: function() {
+        get: function () {
           return value;
         },
         set: thenProp.set
@@ -603,16 +613,16 @@
   };
   props(DexiePromise.prototype, {
     then: thenProp,
-    _then: function(onFulfilled, onRejected) {
+    _then: function (onFulfilled, onRejected) {
       propagateToListener(this, new Listener(null, null, onFulfilled, onRejected, PSD));
     },
-    catch: function(onRejected) {
+    catch: function (onRejected) {
       if (arguments.length === 1)
         return this.then(null, onRejected);
       var type2 = arguments[0], handler = arguments[1];
       return typeof type2 === "function" ? this.then(null, (err) => err instanceof type2 ? handler(err) : PromiseReject(err)) : this.then(null, (err) => err && err.name === type2 ? handler(err) : PromiseReject(err));
     },
-    finally: function(onFinally) {
+    finally: function (onFinally) {
       return this.then((value) => {
         onFinally();
         return value;
@@ -622,7 +632,7 @@
       });
     },
     stack: {
-      get: function() {
+      get: function () {
         if (this._stack)
           return this._stack;
         try {
@@ -637,7 +647,7 @@
         }
       }
     },
-    timeout: function(ms, msg) {
+    timeout: function (ms, msg) {
       return ms < Infinity ? new DexiePromise((resolve, reject) => {
         var handle = setTimeout(() => reject(new exceptions.Timeout(msg)), ms);
         this.then(resolve, reject).finally(clearTimeout.bind(null, handle));
@@ -655,9 +665,9 @@
     this.psd = zone;
   }
   props(DexiePromise, {
-    all: function() {
+    all: function () {
       var values = getArrayOf.apply(null, arguments).map(onPossibleParallellAsync);
-      return new DexiePromise(function(resolve, reject) {
+      return new DexiePromise(function (resolve, reject) {
         if (values.length === 0)
           resolve([]);
         var remaining = values.length;
@@ -680,7 +690,7 @@
       return rv;
     },
     reject: PromiseReject,
-    race: function() {
+    race: function () {
       var values = getArrayOf.apply(null, arguments).map(onPossibleParallellAsync);
       return new DexiePromise((resolve, reject) => {
         values.map((value) => DexiePromise.resolve(value).then(resolve, reject));
@@ -711,7 +721,7 @@
           var psd = PSD;
           psd.unhandleds = [];
           psd.onunhandled = reject2;
-          psd.finalize = callBoth(function() {
+          psd.finalize = callBoth(function () {
             run_at_end_of_this_or_next_physical_tick(() => {
               this.unhandleds.length === 0 ? resolve2() : reject2(this.unhandleds[0]);
             });
@@ -723,7 +733,7 @@
   });
   if (NativePromise) {
     if (NativePromise.allSettled)
-      setProp(DexiePromise, "allSettled", function() {
+      setProp(DexiePromise, "allSettled", function () {
         const possiblePromises = getArrayOf.apply(null, arguments).map(onPossibleParallellAsync);
         return new DexiePromise((resolve) => {
           if (possiblePromises.length === 0)
@@ -734,7 +744,7 @@
         });
       });
     if (NativePromise.any && typeof AggregateError !== "undefined")
-      setProp(DexiePromise, "any", function() {
+      setProp(DexiePromise, "any", function () {
         const possiblePromises = getArrayOf.apply(null, arguments).map(onPossibleParallellAsync);
         return new DexiePromise((resolve, reject) => {
           if (possiblePromises.length === 0)
@@ -942,7 +952,7 @@
   }
   function wrap(fn, errorCatcher) {
     var psd = PSD;
-    return function() {
+    return function () {
       var wasRootExec = beginMicroTickScope(), outerScope = PSD;
       try {
         switchToZone(psd, true);
@@ -984,7 +994,7 @@
     if (props2)
       extend(psd, props2);
     ++parent.ref;
-    psd.finalize = function() {
+    psd.finalize = function () {
       --this.parent.ref || this.parent.finalize();
     };
     var rv = usePSD(psd, fn, a1, a2);
@@ -1092,7 +1102,7 @@
     nativePromiseThen.call(resolvedNativePromise, job);
   }
   function nativeAwaitCompatibleWrap(fn, zone, possibleAwait, cleanup) {
-    return typeof fn !== "function" ? fn : function() {
+    return typeof fn !== "function" ? fn : function () {
       var outerZone = PSD;
       if (possibleAwait)
         incrementExpectedAwaits();
@@ -1107,7 +1117,7 @@
     };
   }
   function getPatchedPromiseThen(origThen, zone) {
-    return function(onResolved, onRejected) {
+    return function (onResolved, onRejected) {
       return origThen.call(this, nativeAwaitCompatibleWrap(onResolved, zone), nativeAwaitCompatibleWrap(onRejected, zone));
     };
   }
@@ -1192,7 +1202,7 @@
   var READONLY = "readonly";
   var READWRITE = "readwrite";
   function combine(filter1, filter2) {
-    return filter1 ? filter2 ? function() {
+    return filter1 ? filter2 ? function () {
       return filter1.apply(this, arguments) && filter2.apply(this, arguments);
     } : filter1 : filter2;
   }
@@ -1446,7 +1456,7 @@
   };
   function Events(ctx) {
     var evs = {};
-    var rv = function(eventName, subscriber) {
+    var rv = function (eventName, subscriber) {
       if (subscriber) {
         var i2 = arguments.length, args = new Array(i2 - 1);
         while (--i2)
@@ -1472,14 +1482,14 @@
       var context = {
         subscribers: [],
         fire: defaultFunction,
-        subscribe: function(cb) {
+        subscribe: function (cb) {
           if (context.subscribers.indexOf(cb) === -1) {
             context.subscribers.push(cb);
             context.fire = chainFunction(context.fire, cb);
           }
         },
-        unsubscribe: function(cb) {
-          context.subscribers = context.subscribers.filter(function(fn) {
+        unsubscribe: function (cb) {
+          context.subscribers = context.subscribers.filter(function (fn) {
             return fn !== cb;
           });
           context.fire = context.subscribers.reduce(chainFunction, defaultFunction);
@@ -1489,7 +1499,7 @@
       return context;
     }
     function addConfiguredEvents(cfg) {
-      keys(cfg).forEach(function(eventName) {
+      keys(cfg).forEach(function (eventName) {
         var args = cfg[eventName];
         if (isArray(args)) {
           add(eventName, cfg[eventName][0], cfg[eventName][1]);
@@ -1498,7 +1508,7 @@
             var i2 = arguments.length, args2 = new Array(i2);
             while (i2--)
               args2[i2] = arguments[i2];
-            context.subscribers.forEach(function(fn) {
+            context.subscribers.forEach(function (fn) {
               asap$1(function fireEvent() {
                 fn.apply(null, args2);
               });
@@ -1745,7 +1755,7 @@
         var aVal = getval(a, lastIndex), bVal = getval(b, lastIndex);
         return aVal < bVal ? -order : aVal > bVal ? order : 0;
       }
-      return this.toArray(function(a) {
+      return this.toArray(function (a) {
         return a.sort(sorter);
       }).then(cb);
     }
@@ -1804,7 +1814,7 @@
       this._ctx.limit = Math.min(this._ctx.limit, numRows);
       addReplayFilter(this._ctx, () => {
         var rowsLeft = numRows;
-        return function(cursor, advance, resolve) {
+        return function (cursor, advance, resolve) {
           if (--rowsLeft <= 0)
             advance(resolve);
           return rowsLeft >= 0;
@@ -1813,7 +1823,7 @@
       return this;
     }
     until(filterFunction, bIncludeStopEntry) {
-      addFilter(this._ctx, function(cursor, advance, resolve) {
+      addFilter(this._ctx, function (cursor, advance, resolve) {
         if (filterFunction(cursor.value)) {
           advance(resolve);
           return bIncludeStopEntry;
@@ -1824,7 +1834,7 @@
       return this;
     }
     first(cb) {
-      return this.limit(1).toArray(function(a) {
+      return this.limit(1).toArray(function (a) {
         return a[0];
       }).then(cb);
     }
@@ -1832,7 +1842,7 @@
       return this.reverse().first(cb);
     }
     filter(filterFunction) {
-      addFilter(this._ctx, function(cursor) {
+      addFilter(this._ctx, function (cursor) {
         return filterFunction(cursor.value);
       });
       addMatchFilter(this._ctx, filterFunction);
@@ -1856,7 +1866,7 @@
     eachKey(cb) {
       var ctx = this._ctx;
       ctx.keysOnly = !ctx.isMatch;
-      return this.each(function(val, cursor) {
+      return this.each(function (val, cursor) {
         cb(cursor.key, cursor);
       });
     }
@@ -1867,7 +1877,7 @@
     eachPrimaryKey(cb) {
       var ctx = this._ctx;
       ctx.keysOnly = !ctx.isMatch;
-      return this.each(function(val, cursor) {
+      return this.each(function (val, cursor) {
         cb(cursor.primaryKey, cursor);
       });
     }
@@ -1875,9 +1885,9 @@
       var ctx = this._ctx;
       ctx.keysOnly = !ctx.isMatch;
       var a = [];
-      return this.each(function(item, cursor) {
+      return this.each(function (item, cursor) {
         a.push(cursor.key);
-      }).then(function() {
+      }).then(function () {
         return a;
       }).then(cb);
     }
@@ -1899,9 +1909,9 @@
       }
       ctx.keysOnly = !ctx.isMatch;
       var a = [];
-      return this.each(function(item, cursor) {
+      return this.each(function (item, cursor) {
         a.push(cursor.primaryKey);
-      }).then(function() {
+      }).then(function () {
         return a;
       }).then(cb);
     }
@@ -1910,7 +1920,7 @@
       return this.keys(cb);
     }
     firstKey(cb) {
-      return this.limit(1).keys(function(a) {
+      return this.limit(1).keys(function (a) {
         return a[0];
       }).then(cb);
     }
@@ -1922,7 +1932,7 @@
       if (!idx || !idx.multi)
         return this;
       var set = {};
-      addFilter(this._ctx, function(cursor) {
+      addFilter(this._ctx, function (cursor) {
         var strKey = cursor.primaryKey.toString();
         var found = hasOwn(set, strKey);
         set[strKey] = true;
@@ -1939,7 +1949,7 @@
         } else {
           var keyPaths = keys(changes);
           var numKeys = keyPaths.length;
-          modifyer = function(item) {
+          modifyer = function (item) {
             var anythingModified = false;
             for (var i = 0; i < numKeys; ++i) {
               var keyPath = keyPaths[i], val = changes[keyPath];
@@ -2134,15 +2144,15 @@
       upper = upperFactory(dir);
       lower = lowerFactory(dir);
       compare = dir === "next" ? simpleCompare : simpleCompareReverse;
-      var needleBounds = needles.map(function(needle) {
+      var needleBounds = needles.map(function (needle) {
         return { lower: lower(needle), upper: upper(needle) };
-      }).sort(function(a, b) {
+      }).sort(function (a, b) {
         return compare(a.lower, b.lower);
       });
-      upperNeedles = needleBounds.map(function(nb) {
+      upperNeedles = needleBounds.map(function (nb) {
         return nb.upper;
       });
-      lowerNeedles = needleBounds.map(function(nb) {
+      lowerNeedles = needleBounds.map(function (nb) {
         return nb.lower;
       });
       direction = dir;
@@ -2150,11 +2160,11 @@
     }
     initDirection("next");
     var c = new whereClause.Collection(whereClause, () => createRange(upperNeedles[0], lowerNeedles[needlesLen - 1] + suffix));
-    c._ondirectionchange = function(direction2) {
+    c._ondirectionchange = function (direction2) {
       initDirection(direction2);
     };
     var firstPossibleNeedle = 0;
-    c._addAlgorithm(function(cursor, advance, resolve) {
+    c._addAlgorithm(function (cursor, advance, resolve) {
       var key = cursor.key;
       if (typeof key !== "string")
         return false;
@@ -2172,7 +2182,7 @@
           }
         }
         if (lowestPossibleCasing !== null) {
-          advance(function() {
+          advance(function () {
             cursor.continue(lowestPossibleCasing + nextKeySuffix);
           });
         } else {
@@ -2422,7 +2432,7 @@
     });
   }
   function eventRejectHandler(reject) {
-    return wrap(function(event) {
+    return wrap(function (event) {
       preventDefault(event);
       reject(event.target.error);
       return false;
@@ -2831,7 +2841,7 @@
             cursor.trans = trans;
             cursor.stop = cursor.continue = cursor.continuePrimaryKey = cursor.advance = doThrowCursorIsNotStarted;
             cursor.fail = wrap(reject);
-            cursor.next = function() {
+            cursor.next = function () {
               let gotOne = 1;
               return this.start(() => gotOne-- ? this.continue() : this.stop()).then(() => this);
             };
@@ -3343,7 +3353,7 @@
     !hasDatabasesNative(indexedDB2) && name !== DBNAMES_DB && getDbNamesTable(indexedDB2, IDBKeyRange).delete(name).catch(nop);
   }
   function vip(fn) {
-    return newScope(function() {
+    return newScope(function () {
       PSD.letThrough = true;
       return fn();
     });
@@ -3353,13 +3363,13 @@
     if (!isSafari || !indexedDB.databases)
       return Promise.resolve();
     var intervalId;
-    return new Promise(function(resolve) {
-      var tryIdb = function() {
+    return new Promise(function (resolve) {
+      var tryIdb = function () {
         return indexedDB.databases().finally(resolve);
       };
       intervalId = setInterval(tryIdb, 100);
       tryIdb();
-    }).finally(function() {
+    }).finally(function () {
       return clearInterval(intervalId);
     });
   }
@@ -3869,7 +3879,7 @@
   function isEmptyRange(node) {
     return !("from" in node);
   }
-  var RangeSet = function(fromOrTree, to) {
+  var RangeSet = function (fromOrTree, to) {
     if (this) {
       extend(this, arguments.length ? { d: 1, from: fromOrTree, to: arguments.length > 1 ? to : fromOrTree } : { d: 0 });
     } else {
@@ -4081,7 +4091,7 @@
             openCursor: getRange
           };
           keys(readSubscribers).forEach((method) => {
-            tableClone[method] = function(req) {
+            tableClone[method] = function (req) {
               const { subscr } = PSD;
               if (subscr) {
                 const getRangeSet = (indexName) => {
@@ -4578,8 +4588,8 @@
       return PSD.trans ? usePSD(PSD.transless, scopeFunc) : scopeFunc();
     },
     vip,
-    async: function(generatorFn) {
-      return function() {
+    async: function (generatorFn) {
+      return function () {
         try {
           var rv = awaitIterator(generatorFn.apply(this, arguments));
           if (!rv || typeof rv.then !== "function")
@@ -4590,7 +4600,7 @@
         }
       };
     },
-    spawn: function(generatorFn, args, thiz) {
+    spawn: function (generatorFn, args, thiz) {
       try {
         var rv = awaitIterator(generatorFn.apply(thiz, args || []));
         if (!rv || typeof rv.then !== "function")
@@ -4603,7 +4613,7 @@
     currentTransaction: {
       get: () => PSD.trans || null
     },
-    waitFor: function(promiseOrFunction, optionalTimeout) {
+    waitFor: function (promiseOrFunction, optionalTimeout) {
       const promise = DexiePromise.resolve(typeof promiseOrFunction === "function" ? Dexie.ignoreTransaction(promiseOrFunction) : promiseOrFunction).timeout(optionalTimeout || 6e4);
       return PSD.trans ? PSD.trans.waitFor(promise) : promise;
     },

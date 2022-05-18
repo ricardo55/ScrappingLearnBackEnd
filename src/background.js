@@ -3,41 +3,45 @@ import { db } from "./lib/db.js"
 
 let tabId;
 
-chrome.action.onClicked.addListener(tab=>{
+chrome.action.onClicked.addListener(tab => {
 
     chrome.tabs.create({
-        url: URLS.base
-    }, tab =>{
+        //url: URLS.base
+        url: URLS.base + message.input
+
+    }, tab => {
         tabId = tab.id
         chrome.scripting.executeScript({
-            target:{tabId: tab.id},
-            files:["./scripts/getUrls.js"]
+            target: { tabId: tab.id },
+            files: ["./scripts/getUrls.js"]
         })
     })
-   
+
 })
 
 let guardian = 0
 let urls;
 
-chrome.runtime.onConnect.addListener(port=>{
-    if(port.name==="safePort"){
-        port.onMessage.addListener(async message=>{
+chrome.runtime.onConnect.addListener(port => {
+    if (port.name === "safePort") {
+        port.onMessage.addListener(async message => {
 
-            await db.profiles.add(message)
+            //await db.profiles.add(message)
+            await db.profiles.add(message.profile)
             console.log("datos guardados en indexdb")
             console.log(guardian)
-            if(guardian<urls.length){
-                await chrome.tabs.update(tabId,{url:urls[guardian]})
-    
-    
-                setTimeout(()=>{
+
+            if (guardian < urls.length) {
+                await chrome.tabs.update(tabId, { url: urls[guardian] })
+
+
+                setTimeout(() => {
                     chrome.scripting.executeScript({
-                        target: {tabId},
-                        files: ['./scripts/scrapper.js']    
-                    }) 
-                },5000)
-    
+                        target: { tabId },
+                        files: ['./scripts/scrapper.js']
+                    })
+                }, 5000)
+
                 guardian++
 
             }
@@ -49,28 +53,28 @@ chrome.runtime.onConnect.addListener(port=>{
                 .then(data=>console.log(data))
                 .catch(error=>console.log(error)) */
         })
-    }else if(port.name==="safePortUrls"){
-        port.onMessage.addListener(async message=>{
-            
-            urls = message.urlsProfiles 
-            
+    } else if (port.name === "safePortUrls") {
+        port.onMessage.addListener(async message => {
+
+            urls = message.urlsProfiles
+
             const [url] = urls
-            await chrome.tabs.update(tabId,{url})
+            await chrome.tabs.update(tabId, { url })
 
 
-            setTimeout(()=>{
+            setTimeout(() => {
                 chrome.scripting.executeScript({
-                    target: {tabId},
-                    files: ['./scripts/scrapper.js']    
-                }) 
-            },5000)
+                    target: { tabId },
+                    files: ['./scripts/scrapper.js']
+                })
+            }, 5000)
             guardian++
-                
-            
-                
 
-        
+
+
+
+
         })
     }
-})
+});
 

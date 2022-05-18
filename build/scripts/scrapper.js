@@ -52,6 +52,8 @@
         experiencieItems: "(//section[.//span[contains(text(),'Experiencia')]]//ul)[1]/li"
       }
     },
+    education: "(//section[.//span[contains(text(),'Educaci\xF3n')]]//ul)[3]//div//span[@aria-hidden='true']",
+    experiencie: "(//section[.//span[contains(text(),'Experiencia')]]//ul)[1]/li//div[2]/div[1]/div[1]//span[@aria-hidden='true']",
     search: {
       urlsProfiles: ".search-results-container .ph0 ul.reusable-search__entity-result-list > li span.entity-result__title-text a"
     }
@@ -66,8 +68,43 @@
       const educationItems = $x(selectors_default.profile.xpath.educationItems);
       const pruebaExperience = experienceItems.map((element) => $('span[aria-hidden="true"]', element)?.textContent);
       const pruebaEducation = educationItems.map((element) => $('span[aria-hidden="true"]', element)?.textContent);
+
+
+      const experience = $x(selectors_default.experiencie);
+      const education = $x(selectors_default.education);
+      const experienceArr = experience.map((e) => e.textContent);
+      const educationArr = education.map((e) => e.textContent);
+
       let port = chrome.runtime.connect({ name: "safePort" });
-      port.postMessage({ fullName, pruebaExperience, pruebaEducation });
+
+      let profile = {
+        fullName,
+        pruebaEducation,
+        pruebaExperience
+      };
+      
+      let arrayAuxExp = [];
+      for (let i = 0; i < experienceArr.length; i++) {
+        let experienciaDB = {};
+        experienciaDB["role"] = experienceArr.shift();
+        experienciaDB["place"] = experienceArr.shift();
+        experienciaDB["period"] = experienceArr.shift();
+        experienciaDB["country"] = experienceArr.shift();
+        arrayAuxExp.push(experienciaDB);
+      }
+
+      let arrayAuxEduc = [];
+      for (let i = 0; i < experienceArr.length; i++) {
+        let educacionDB = {};
+        educacionDB["place"] = educationArr.shift();
+        educacionDB["role"] = educationArr.shift();
+        educacionDB["period"] = educationArr.shift();
+        educacionDB["country"] = educationArr.shift();
+        arrayAuxEduc.push(educacionDB);
+      }
+
+      port.postMessage({ profile, arrAuxEdu, arrAuxExp });
+      //port.postMessage({ fullName, pruebaExperience, pruebaEducation });
     });
   }).catch(() => {
     console.log("intentelo mas tarde");
